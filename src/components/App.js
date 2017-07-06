@@ -7,9 +7,14 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      authStatus: {
+      loggedIn: false,
+      username: '',
+      token: ''
+    },
       trains: []
     };
-
+    this.updateAuthStatus = this.updateAuthStatus.bind(this);
     this.updateTrains = this.updateTrains.bind(this);
   }
 
@@ -25,6 +30,19 @@ class App extends React.Component {
   }
 
   componentDidMount() {
+    let token = localStorage.getItem('token');
+    let username = localStorage.getItem('username');
+
+    if (token && username) {
+      this.setState({
+        authStatus: {
+          loggedIn: true,
+          username,
+          token
+        }
+      })
+    }
+
     this.fetchTrains();
   }
 
@@ -32,15 +50,25 @@ class App extends React.Component {
     this.setState({ trains });
   }
 
+  updateAuthStatus(authStatus, redirect) {
+    this.setState({authStatus}, browserHistory.push(`/${redirect}/`));
+  }
+
   render () {
-    const { trains } = this.state;
+    const { trains, authStatus } = this.state;
 
     return (
       <div>
       <h1>Big Metro City Choo-Choo Train Authority</h1>
+        <Auth
+          username={authStatus.username}
+          updateAuthStatus={this.updateAuthStatus}
+        />
         {React.cloneElement(
           this.props.children,
-          { 
+          {
+            authStatus,
+            updateAuthStatus: this.updateAuthStatus,
             trains,
             updateTrains: this.updateTrains
           }
